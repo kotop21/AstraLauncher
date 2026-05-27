@@ -1,0 +1,26 @@
+[project]
+name = "servlauncher"
+version = "0.1.0"
+description = "Serv launcher: easy and light server manager for minecraft."
+authors = [{ name = "kotop21", github = "github.com/kotop21" }]
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = []
+
+[tool.uv.workspace]
+members = ["packages/*"]
+
+[tool.basedpyright]
+typeCheckingMode = "basic"
+extraPaths = ["packages/core/src", "packages/desktop/src"]
+venvPath = "."
+venv = ".venv"
+
+reportMissingTypeStubs = false
+
+reportUnknownMemberType = false
+reportUnknownVariableType = false
+reportUnknownArgumentType = false
+reportAny = false
+
+reportUnusedExpression = false

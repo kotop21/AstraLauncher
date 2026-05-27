@@ -1,0 +1,24 @@
+[project]
+name = "desktop"
+version = "0.1.0"
+description = "Desktop app for Serv Launcher"
+requires-python = ">=3.13"
+dependencies = [
+    "core",
+    "customtkinter>=5.2.2",
+    "ttkbootstrap-icons>=4.0.0",
+    "ttkbootstrap-icons-lucide>=1.0.0",
+]
+
+[tool.uv.sources]
+core = { workspace = true }
+
+[project.scripts]
+desktop = "desktop.app:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+package = true
