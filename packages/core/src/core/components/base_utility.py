@@ -9,7 +9,7 @@ def listen_to(signal: Signal):
     return decorator
 
 
-class BaseUtility:
+class BaseListener:
     def __init__(self):
         self._subscribed_methods = []
 

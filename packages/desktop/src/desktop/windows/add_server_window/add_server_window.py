@@ -1,5 +1,6 @@
 import customtkinter as ctk
 from desktop.components import BaseWindow
+from core.events import bus, Signal
 
 
 class AddServerWindow(BaseWindow):
@@ -50,5 +51,14 @@ class AddServerWindow(BaseWindow):
         name = self.entry_name.get()
         core = self.option_core.get()
         version = self.option_version.get()
-        print(f"Added server: {name} | {core} | {version}")
+
+        server_data = {
+            "name": name,
+            "core": core,
+            "version": version,
+            "port": 25565,
+            "path": "",
+        }
+
+        bus.emit(Signal.CMD_ADD_SERVER, server_data=server_data)
         self.destroy()

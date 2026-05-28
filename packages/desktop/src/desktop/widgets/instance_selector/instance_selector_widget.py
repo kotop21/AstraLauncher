@@ -1,9 +1,11 @@
 import warnings
 import tkinter as tk
 import customtkinter as ctk
-from typing import Dict
+from typing import Dict, List
 from ttkbootstrap_icons_lucide import LucideIcon
 from desktop.components import SmartMenuButton
+from core.events import bus, Signal
+from .instance_selector_actions import InstanceSelectorActions
 
 warnings.filterwarnings("ignore", category=UserWarning, module="customtkinter")
 
@@ -15,6 +17,8 @@ class InstanceSelector(ctk.CTkScrollableFrame):
         self.grid_columnconfigure(0, weight=1)
         self.row_frames = []
 
+        self.actions = InstanceSelectorActions(self)
+
         self.selected_color = ctk.ThemeManager.theme["CTkButton"]["fg_color"]
         self.default_color = ctk.ThemeManager.theme["CTkFrame"]["top_fg_color"]
 
@@ -23,7 +27,16 @@ class InstanceSelector(ctk.CTkScrollableFrame):
         self.context_menu = tk.Menu(self, tearoff=0)
         self._build_context_menu()
 
+        bus.subscribe(Signal.RESPONSE_ALL_SERVERS, self._on_servers_received)
+        bus.subscribe(Signal.RESPONSE_SERVER, self._on_single_server_received)
+
+        self.bind("<Destroy>", self._cleanup)
+
         self.load_instances()
+
+    def _cleanup(self, event):
+        bus.unsubscribe(Signal.RESPONSE_ALL_SERVERS, self._on_servers_received)
+        bus.unsubscribe(Signal.RESPONSE_SERVER, self._on_single_server_received)
 
     def _build_context_menu(self):
         from desktop.windows import ServerWindow
@@ -37,14 +50,24 @@ class InstanceSelector(ctk.CTkScrollableFrame):
         )
 
         self.context_menu.add_separator()
-        self.context_menu.add_command(label="Start", command=self._action_start)
-        self.context_menu.add_command(label="Stop", command=self._action_stop)
+        self.context_menu.add_command(label="Start", command=self.actions.start_server)
+        self.context_menu.add_command(label="Stop", command=self.actions.stop_server)
         self.context_menu.add_separator()
-        self.context_menu.add_command(label="Folder")
-        self.context_menu.add_command(label="Delete")
+        self.context_menu.add_command(label="Folder", command=self.actions.open_folder)
+        self.context_menu.add_command(
+            label="Delete", command=self.actions.delete_server
+        )
 
     def load_instances(self):
-        data = self._get_mock_instances()
+        bus.emit(Signal.CMD_REQUEST_ALL_SERVERS)
+
+    def _on_servers_received(self, data: List[Dict]):
+        if self.status_bar:
+            self.status_bar.set_status("")
+        for frame in self.row_frames:
+            frame.destroy()
+        self.row_frames.clear()
+
         for i, instance in enumerate(data):
             self._create_row(i, instance)
 
@@ -70,24 +93,26 @@ class InstanceSelector(ctk.CTkScrollableFrame):
         self.row_frames.append(row_frame)
 
         widgets = [row_frame, lbl_icon, lbl_core, lbl_port]
-        hint_text = f"{data['name']} | {data['core']} {data['version']} | {data['port']} | {data['status']}"
 
         for w in widgets:
             w.bind(
                 "<Button-1>",
-                lambda e, r=row_index, txt=hint_text: self._on_single_click(r, txt),
-            )
-            w.bind("<Double-Button-1>", lambda e, d=data: self._on_double_click(d))
-            w.bind(
-                "<Button-3>",
-                lambda e, d=data, r=row_index, txt=hint_text: self._show_context_menu(
-                    e, d, r, txt
+                lambda e, r=row_index, sid=data["id"]: self.actions.on_single_click(
+                    r, sid
                 ),
             )
+            w.bind(
+                "<Double-Button-1>", lambda e, d=data: self.actions.on_double_click(d)
+            )
+            w.bind(
+                "<Button-3>",
+                lambda e, d=data, r=row_index: self._show_context_menu(e, d, r),
+            )
 
-    def _show_context_menu(self, event, data, row_index, text):
+    def _show_context_menu(self, event, data, row_index):
         self._current_context_data = data
-        self._on_single_click(row_index, text)
+        self.actions.on_single_click(row_index, data["id"])
+
         self.context_menu.entryconfigure(
             "Start", state="normal" if data["status"] != "Running" else "disabled"
         )
@@ -96,68 +121,7 @@ class InstanceSelector(ctk.CTkScrollableFrame):
         )
         self.context_menu.post(event.x_root, event.y_root)
 
-    def _action_start(self):
-        if hasattr(self, "_current_context_data"):
-            print(
-                f"[LOG] Start action triggered for {self._current_context_data['name']}"
-            )
-
-    def _action_stop(self):
-        if hasattr(self, "_current_context_data"):
-            print(
-                f"[LOG] Stop action triggered for {self._current_context_data['name']}"
-            )
-
-    def _on_single_click(self, row_index, text):
+    def _on_single_server_received(self, data: Dict):
         if self.status_bar:
-            self.status_bar.set_status(text)
-        for i, frame in enumerate(self.row_frames):
-            frame.configure(
-                fg_color=self.selected_color if i == row_index else self.default_color
-            )
-
-    def _on_double_click(self, data):
-        self._current_context_data = data
-        self.cmd_manage._on_click()
-
-    def _get_mock_instances(self):
-        return [
-            {
-                "id": 1,
-                "name": "Main Survival",
-                "core": "Paper",
-                "version": "1.20.4",
-                "status": "Running",
-                "port": 25565,
-            },
-            {
-                "id": 2,
-                "name": "Lobby",
-                "core": "Purpur",
-                "version": "1.19.4",
-                "status": "Stopped",
-                "port": 25566,
-            },
-            {
-                "id": 3,
-                "name": "Minigames",
-                "core": "Spigot",
-                "version": "1.8.8",
-                "status": "Waiting",
-                "port": 25567,
-            },
-            {
-                "id": 4,
-                "name": "Anarchy",
-                "core": "Folia",
-                "version": "1.20.4",
-                "status": "Stopped",
-                "port": 25568,
-            },
-        ]
-
-    def refresh_instances(self):
-        for frame in self.row_frames:
-            frame.destroy()
-        self.row_frames = []
-        self.load_instances()
+            hint_text = f"{data['name']} | {data['core']} {data['version']} | {data['port']} | {data['status']}"
+            self.status_bar.set_status(hint_text)

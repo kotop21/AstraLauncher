@@ -1,23 +1,16 @@
 import tkinter as tk
 import customtkinter as ctk
-from typing import Callable, Optional
 from ttkbootstrap_icons_lucide import LucideIcon
 from desktop.components import SmartButton
+from .menu_bar_actions import MenuBarActions
 
 
 class MenuBar(ctk.CTkFrame):
-    def __init__(
-        self,
-        master,
-        on_add_server: Optional[Callable] = None,
-        on_folders: Optional[Callable] = None,
-        on_settings: Optional[Callable] = None,
-        on_help: Optional[Callable] = None,
-        **kwargs,
-    ):
+    def __init__(self, master, **kwargs):
         super().__init__(master, height=50, corner_radius=0, **kwargs)
 
         self.pack_propagate(False)
+        self.actions = MenuBarActions(self)
 
         icon_size = 32
         icon_color = "#FFFFFF"
@@ -66,16 +59,6 @@ class MenuBar(ctk.CTkFrame):
         )
         self.btn_folders.pack(side="left", padx=5, pady=9)
 
-        # self.btn_settings = SmartButton(
-        #     text="Settings",
-        #     width=110,
-        #     image=self.icon_settings,
-        #     window_class=SettingsWindow,
-        #     hover_text="Global launcher settings",
-        #     **btn_kwargs,
-        # )
-        # self.btn_settings.pack(side="left", padx=5, pady=9)
-
         self.btn_help = SmartButton(
             text="Help",
             width=90,
@@ -90,7 +73,11 @@ class MenuBar(ctk.CTkFrame):
         menu = tk.Menu(self, tearoff=0)
         menu.add_command(
             label="All servers folder",
-            command=lambda: print("[LOG] Action: Open all servers folder"),
+            command=self.actions.open_all_servers_folder,
+        )
+        menu.add_command(
+            label="Launcher directory",
+            command=self.actions.open_launcher_folder,
         )
 
         x = self.btn_folders.winfo_rootx()
@@ -101,15 +88,15 @@ class MenuBar(ctk.CTkFrame):
         menu = tk.Menu(self, tearoff=0)
         menu.add_command(
             label="Open launcher repository",
-            command=lambda: print("[LOG] Action: Open launcher repository"),
+            command=self.actions.open_repository,
         )
         menu.add_command(
             label="Support the developer",
-            command=lambda: print("[LOG] Action: Support the developer"),
+            command=self.actions.support_developer,
         )
         menu.add_command(
             label="Report an issue / suggest a feature",
-            command=lambda: print("[LOG] Action: Report an issue / suggest a feature"),
+            command=self.actions.report_issue,
         )
 
         x = self.btn_help.winfo_rootx()

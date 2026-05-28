@@ -3,6 +3,22 @@ from typing import Callable, Dict, List
 
 
 class Signal(Enum):
+    CMD_ADD_SERVER = auto()
+    CMD_DELETE_SERVER = auto()
+    CMD_START_SERVER = auto()
+    CMD_STOP_SERVER = auto()
+    CMD_KILL_SERVER = auto()
+    CMD_REQUEST_ALL_SERVERS = auto()
+    CMD_REQUEST_SERVER = auto()
+    CMD_UPDATE_JAVA_ARGS = auto()
+    CMD_OPEN_FOLDER = auto()
+
+    SERVER_ADDED = auto()
+    SERVER_DELETED = auto()
+    SERVER_STATUS_CHANGED = auto()
+    RESPONSE_ALL_SERVERS = auto()
+    RESPONSE_SERVER = auto()
+
     TEST_SIGNAL = auto()
 
 

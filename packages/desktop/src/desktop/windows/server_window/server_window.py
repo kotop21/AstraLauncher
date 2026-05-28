@@ -1,8 +1,8 @@
 import customtkinter as ctk
-from ttkbootstrap_icons_lucide import LucideIcon
 from desktop.components import BaseWindow
 from desktop.widgets import ConsoleWidget
 from desktop.widgets import ExplorerWidget
+from core.events import bus, Signal
 
 
 class ServerWindow(BaseWindow):
@@ -26,9 +26,8 @@ class ServerWindow(BaseWindow):
         )
         self.lbl_name.pack(side="left", padx=15, pady=15)
 
-        info_text = f"{self.server_data['core']} {self.server_data['version']}  •  Port: {self.server_data['port']}  •  Status: {self.server_data['status']}"
         self.lbl_info = ctk.CTkLabel(
-            self.header_frame, text=info_text, font=("", 14), text_color="gray50"
+            self.header_frame, text="", font=("", 14), text_color="gray50"
         )
         self.lbl_info.pack(side="left", padx=10, pady=15)
 
@@ -82,9 +81,71 @@ class ServerWindow(BaseWindow):
 
         self.entry_args = ctk.CTkTextbox(self.settings_frame, height=80)
         self.entry_args.pack(fill="x", padx=15, pady=(5, 15))
-        self.entry_args.insert("1.0", "-Xmx4G -Xms1G")
+
+        saved_args = self.server_data.get("java_args", "-Xmx4G -Xms1G")
+        self.entry_args.insert("1.0", saved_args)
+
+        self.entry_args.bind("<Return>", self._save_java_args)
 
         self.bind("<Configure>", self._on_resize)
+        self.bind("<Destroy>", self._cleanup)
+
+        bus.subscribe(Signal.SERVER_STATUS_CHANGED, self._on_status_changed)
+
+        self._update_ui_state(self.server_data["status"])
+
+        if hasattr(self.console_widget, "btn_kill"):
+            self.console_widget.btn_kill.configure(command=self._action_kill)
+
+    def _save_java_args(self, event=None):
+        current_args = self.entry_args.get("1.0", "end-1c").strip()
+        if self.server_data.get("java_args") != current_args:
+            self.server_data["java_args"] = current_args
+            bus.emit(
+                Signal.CMD_UPDATE_JAVA_ARGS,
+                server_id=self.server_data["id"],
+                java_args=current_args,
+            )
+
+        if event:
+            self.focus_set()
+            return "break"
+
+    def _cleanup(self, event):
+        if str(event.widget) == str(self):
+            try:
+                bus.unsubscribe(Signal.SERVER_STATUS_CHANGED, self._on_status_changed)
+            except ValueError:
+                pass
+
+    def _action_kill(self):
+        bus.emit(Signal.CMD_KILL_SERVER, server_id=self.server_data["id"])
+
+    def _on_status_changed(self, server_id: int, new_status: str):
+        if server_id == self.server_data["id"]:
+            self.server_data["status"] = new_status
+            self._update_ui_state(new_status)
+
+    def _update_ui_state(self, status: str):
+        if not self.winfo_exists():
+            return
+        info_text = f"{self.server_data['core']} {self.server_data['version']}  •  Port: {self.server_data['port']}  •  Status: {status}"
+        self.lbl_info.configure(text=info_text)
+
+        is_running = status == "Running"
+
+        if hasattr(self.console_widget, "btn_start"):
+            self.console_widget.btn_start.configure(
+                state="disabled" if is_running else "normal"
+            )
+        if hasattr(self.console_widget, "btn_stop"):
+            self.console_widget.btn_stop.configure(
+                state="normal" if is_running else "disabled"
+            )
+        if hasattr(self.console_widget, "btn_kill"):
+            self.console_widget.btn_kill.configure(
+                state="normal" if is_running else "disabled"
+            )
 
     def _start_drag(self, event):
         self._drag_start_x = event.x_root

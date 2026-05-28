@@ -1,12 +1,14 @@
 import customtkinter as ctk
 from ttkbootstrap_icons_lucide import LucideIcon
 from core.events import bus, Signal
+from .console_actions import ConsoleActions
 
 
 class ConsoleWidget(ctk.CTkFrame):
     def __init__(self, master, server_data, **kwargs):
         super().__init__(master, fg_color="transparent", **kwargs)
         self.server_data = server_data
+        self.actions = ConsoleActions(self)
 
         self.icon_play = LucideIcon("play", size=16, color="#FFFFFF").image
         self.icon_stop = LucideIcon("square", size=16, color="#FFFFFF").image
@@ -41,12 +43,9 @@ class ConsoleWidget(ctk.CTkFrame):
         self.control_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.control_frame.pack(fill="x")
 
-        self.entry_cmd = ctk.CTkEntry(
-            self.control_frame, placeholder_text="Enter server command...", height=35
-        )
+        self.entry_cmd = ctk.CTkEntry(self.control_frame, height=35)
         self.entry_cmd.pack(side="left", fill="x", expand=True, padx=(0, 10))
-
-        status = self.server_data["status"]
+        self.entry_cmd.bind("<Return>", self.actions.send_command)
 
         self.btn_start = ctk.CTkButton(
             self.control_frame,
@@ -54,8 +53,7 @@ class ConsoleWidget(ctk.CTkFrame):
             image=self.icon_play,
             width=70,
             height=35,
-            state="normal" if status != "Running" else "disabled",
-            command=self._action_start,
+            command=self.actions.start_server,
         )
         self.btn_start.pack(side="left", padx=2)
 
@@ -65,8 +63,7 @@ class ConsoleWidget(ctk.CTkFrame):
             image=self.icon_stop,
             width=70,
             height=35,
-            state="normal" if status == "Running" else "disabled",
-            command=self._action_stop,
+            command=self.actions.stop_server,
         )
         self.btn_stop.pack(side="left", padx=2)
 
@@ -76,15 +73,40 @@ class ConsoleWidget(ctk.CTkFrame):
             image=self.icon_kill,
             width=70,
             height=35,
-            state="normal" if status == "Running" else "disabled",
+            command=self.actions.kill_server,
         )
         self.btn_kill.pack(side="left", padx=2)
 
-    def _action_start(self):
-        print(f"[UI] Кнопка Start нажата для сервера: {self.server_data['name']}")
-        bus.emit(
-            Signal.TEST_SIGNAL, data=f"Команда запуска для {self.server_data['name']}"
-        )
+        self._update_buttons(self.server_data["status"])
 
-    def _action_stop(self):
-        print(f"[UI] Кнопка Stop нажата для сервера: {self.server_data['name']}")
+        bus.subscribe(Signal.SERVER_STATUS_CHANGED, self._on_status_changed)
+        self.bind("<Destroy>", self._cleanup)
+
+    def _cleanup(self, event):
+        if str(event.widget) == str(self):
+            try:
+                bus.unsubscribe(Signal.SERVER_STATUS_CHANGED, self._on_status_changed)
+            except ValueError:
+                pass
+
+    def _update_buttons(self, status: str):
+        if not self.winfo_exists():
+            return
+        is_running = status == "Running"
+        self.btn_start.configure(state="disabled" if is_running else "normal")
+        self.btn_stop.configure(state="normal" if is_running else "disabled")
+        self.btn_kill.configure(state="normal" if is_running else "disabled")
+
+        if is_running:
+            self.entry_cmd.configure(
+                state="normal", placeholder_text="Enter server command..."
+            )
+        else:
+            self.entry_cmd.configure(
+                state="disabled", placeholder_text="Server is offline..."
+            )
+
+    def _on_status_changed(self, server_id: int, new_status: str):
+        if server_id == self.server_data["id"]:
+            self.server_data["status"] = new_status
+            self._update_buttons(new_status)

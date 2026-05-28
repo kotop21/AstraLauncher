@@ -1,7 +1,7 @@
-from .status_bar import StatusBar
-from .menu_bar import MenuBar
+from .status_bar.status_bar_widget import StatusBar
+from .menu_bar.menu_bar_widget import MenuBar
 
-from .instance_selector import InstanceSelector
+from .instance_selector.instance_selector_widget import InstanceSelector
 
-from .console_widget import ConsoleWidget
-from .explorer_widget import ExplorerWidget
+from .console.console_widget import ConsoleWidget
+from .explorer.explorer_widget import ExplorerWidget

@@ -1,3 +1,7 @@
-from .test_listener import TestUtility
+from core.listeners.server import *
 
-test_utility = TestUtility()
+from .test_listener import TestListener
+from .open_folder import OpenFolderListener
+
+test = TestListener()
+open_folder = OpenFolderListener()
