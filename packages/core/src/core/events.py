@@ -12,12 +12,41 @@ class Signal(Enum):
     CMD_REQUEST_SERVER = auto()
     CMD_UPDATE_JAVA_ARGS = auto()
     CMD_OPEN_FOLDER = auto()
+    CMD_SHUTDOWN_ALL = auto()
+    CMD_FETCH_MC_VERSIONS = auto()
+    CMD_FETCH_BUILD_VERSIONS = auto()
+    CMD_SEND_CONSOLE_COMMAND = auto()
+    CMD_REQUEST_CONSOLE_HISTORY = auto()
+    CMD_REQUEST_DIRECTORY = auto()
+    CMD_CHECK_DIRECTORY_UPDATE = auto()
+    CMD_READ_FILE = auto()
+    CMD_SAVE_FILE = auto()
+    CMD_OPEN_DIR_DIALOG = auto()
+    CMD_SCAN_SERVER_DIR = auto()
+    CMD_REMOVE_SERVER = auto()
+    CMD_CANCEL_DOWNLOAD = auto()
+
+    EVENT_DOWNLOAD_PROGRESS = auto()
+    EVENT_DOWNLOAD_COMPLETE = auto()
+    EVENT_DOWNLOAD_ERROR = auto()
 
     SERVER_ADDED = auto()
     SERVER_DELETED = auto()
     SERVER_STATUS_CHANGED = auto()
+    SERVER_CONSOLE_OUTPUT = auto()
+
     RESPONSE_ALL_SERVERS = auto()
     RESPONSE_SERVER = auto()
+    RESPONSE_CONSOLE_HISTORY = auto()
+    RESPONSE_BUILD_VERSIONS = auto()
+    RESPONSE_MC_VERSIONS = auto()
+    RESPONSE_DIRECTORY = auto()
+    RESPONSE_FILE_CONTENT = auto()
+    RESPONSE_FILE_SAVED = auto()
+    RESPONSE_SERVER_SCANNED = auto()
+    RESPONSE_DIR_DIALOG = auto()
+
+    EVENT_DOWNLOAD_STARTED = auto()
 
     TEST_SIGNAL = auto()
 
@@ -28,7 +57,7 @@ class StrictEventBus:
 
     def subscribe(self, signal: Signal, callback: Callable):
         if not callable(callback):
-            raise TypeError("Callback должен быть вызываемой функцией/методом.")
+            raise TypeError("Callback must be a callable function/method.")
         self._listeners[signal].append(callback)
 
     def unsubscribe(self, signal: Signal, callback: Callable):
@@ -38,8 +67,8 @@ class StrictEventBus:
     def emit(self, signal: Signal, **kwargs):
         if not self._listeners[signal]:
             raise RuntimeError(
-                f"[EventBus] Ошибка безопасности: Сигнал {signal.name} отправлен, "
-                "но на него никто не подписан!"
+                f"[EventBus] Security Error: Signal {signal.name} was sent, "
+                "but no one subscribed to it!"
             )
 
         for callback in self._listeners[signal]:

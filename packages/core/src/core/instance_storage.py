@@ -1,6 +1,6 @@
 import os
 import shutil
-from core import BaseStorage
+from core.base_storage import BaseStorage
 
 
 class InstanceStorage(BaseStorage):

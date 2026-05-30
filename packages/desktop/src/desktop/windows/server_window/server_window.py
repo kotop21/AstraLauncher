@@ -1,24 +1,46 @@
+import tkinter as tk
 import customtkinter as ctk
-from desktop.components import BaseWindow
-from desktop.widgets import ConsoleWidget
-from desktop.widgets import ExplorerWidget
-from core.events import bus, Signal
+from ttkbootstrap_icons_lucide import LucideIcon
+from desktop.components import BaseWindow, SmartButton
+from desktop.widgets.console.console_widget import ConsoleWidget
+from desktop.widgets.explorer.explorer_widget import ExplorerWidget
+from desktop.windows.server_settings.server_settings import ServerSettingsWindow
+from core.app_config import config
+from .server_actions import ServerActions
 
 
 class ServerWindow(BaseWindow):
+    _open_windows = {}
+
     def __init__(self, server_data, **kwargs):
+        server_id = server_data["id"]
+
+        if server_id in ServerWindow._open_windows:
+            existing_win = ServerWindow._open_windows[server_id]
+            if existing_win.winfo_exists():
+                existing_win.focus_force()
+                super().__init__(title="Duplicate", size=(1, 1), **kwargs)
+                self.withdraw()
+                self.after(0, self.destroy)
+                return
+
         super().__init__(title=server_data["name"], size=(950, 650), **kwargs)
         self.server_data = server_data
+        ServerWindow._open_windows[server_id] = self
+
+        saved_geom = config.get(f"server_{server_id}_geometry")
+        if saved_geom:
+            self.geometry(saved_geom)
 
         self.resizable(True, True)
-        self.minsize(550, 1)
+        self.minsize(500, 300)
 
-        self._is_compact = False
+        self.actions = ServerActions(self)
 
-        self.main_scroll = ctk.CTkScrollableFrame(self, fg_color="transparent")
-        self.main_scroll.pack(fill="both", expand=True, padx=10, pady=10)
+        self.main_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.main_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
-        self.header_frame = ctk.CTkFrame(self.main_scroll, corner_radius=8)
+        self.header_frame = ctk.CTkFrame(self.main_frame, corner_radius=8)
         self.header_frame.pack(fill="x", pady=(0, 15))
 
         self.lbl_name = ctk.CTkLabel(
@@ -31,12 +53,56 @@ class ServerWindow(BaseWindow):
         )
         self.lbl_info.pack(side="left", padx=10, pady=15)
 
-        self.middle_frame = ctk.CTkFrame(self.main_scroll, fg_color="transparent")
-        self.middle_frame.pack(fill="x", pady=(0, 15))
+        header_bg = self.header_frame.cget("fg_color")
+        self.buttons_frame = ctk.CTkFrame(
+            self.header_frame, fg_color=header_bg, corner_radius=8
+        )
+        self.buttons_frame.place(relx=1.0, rely=0.5, anchor="e", relheight=1.0)
+
+        self.icon_settings = LucideIcon("settings", size=20, color="#FFFFFF").image
+        self.btn_settings = SmartButton(
+            master=self.buttons_frame,
+            text="",
+            image=self.icon_settings,
+            width=40,
+            height=40,
+            fg_color="transparent",
+            hover_text="Server settings",
+            window_class=lambda parent: ServerSettingsWindow(parent, self.server_data),
+        )
+        self.btn_settings.pack(side="right", padx=(5, 15), pady=10)
+
+        self.icon_external = LucideIcon("external-link", size=20, color="#FFFFFF").image
+        self.btn_open_external = ctk.CTkButton(
+            self.buttons_frame,
+            text="",
+            image=self.icon_external,
+            width=40,
+            height=40,
+            fg_color="transparent",
+            command=self._show_external_folders_menu,
+        )
+        self.btn_open_external.pack(side="right", padx=(5, 0), pady=10)
+
+        self.icon_folder = LucideIcon("folder", size=20, color="#FFFFFF").image
+        self.btn_toggle_explorer = ctk.CTkButton(
+            self.buttons_frame,
+            text="",
+            image=self.icon_folder,
+            width=40,
+            height=40,
+            fg_color="transparent",
+            command=self.actions.toggle_explorer,
+        )
+        self.btn_toggle_explorer.pack(side="right", padx=(10, 0), pady=10)
+
+        self.middle_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
+        self.middle_frame.pack(fill="both", expand=True, pady=0)
 
         self.middle_frame.grid_columnconfigure(0, weight=1)
         self.middle_frame.grid_columnconfigure(1, weight=0)
         self.middle_frame.grid_columnconfigure(2, weight=0, minsize=250)
+        self.middle_frame.grid_rowconfigure(0, weight=1)
 
         self.console_widget = ConsoleWidget(
             self.middle_frame, server_data=self.server_data
@@ -57,132 +123,61 @@ class ServerWindow(BaseWindow):
         self.splitter.bind(
             "<Leave>", lambda e: self.splitter.configure(fg_color="transparent")
         )
-        self.splitter.bind("<ButtonPress-1>", self._start_drag)
-        self.splitter.bind("<B1-Motion>", self._on_drag)
+        self.splitter.bind("<ButtonPress-1>", self.actions.start_drag)
+        self.splitter.bind("<B1-Motion>", self.actions.on_drag)
 
-        self.explorer_widget = ExplorerWidget(self.middle_frame, width=250)
+        self.explorer_widget = ExplorerWidget(
+            self.middle_frame,
+            server_path=self.server_data["path"],
+            server_id=self.server_data["id"],
+            width=250,
+        )
+        self.explorer_widget.pack_propagate(False)
         self.explorer_widget.grid(row=0, column=2, sticky="nsew")
 
-        self.settings_header_frame = ctk.CTkFrame(
-            self.main_scroll, fg_color="transparent"
-        )
-        self.settings_header_frame.pack(fill="x", pady=(10, 5), padx=5)
+        self.actions.apply_saved_state()
 
-        self.lbl_settings = ctk.CTkLabel(
-            self.settings_header_frame, text="Settings", font=("", 18, "bold")
-        )
-        self.lbl_settings.pack(side="left")
-
-        self.settings_frame = ctk.CTkFrame(self.main_scroll, corner_radius=8)
-        self.settings_frame.pack(fill="x", pady=(0, 20))
-
-        self.lbl_java_args = ctk.CTkLabel(self.settings_frame, text="Java Arguments")
-        self.lbl_java_args.pack(anchor="w", padx=15, pady=(15, 0))
-
-        self.entry_args = ctk.CTkTextbox(self.settings_frame, height=80)
-        self.entry_args.pack(fill="x", padx=15, pady=(5, 15))
-
-        saved_args = self.server_data.get("java_args", "-Xmx4G -Xms1G")
-        self.entry_args.insert("1.0", saved_args)
-
-        self.entry_args.bind("<Return>", self._save_java_args)
-
-        self.bind("<Configure>", self._on_resize)
-        self.bind("<Destroy>", self._cleanup)
-
-        bus.subscribe(Signal.SERVER_STATUS_CHANGED, self._on_status_changed)
-
-        self._update_ui_state(self.server_data["status"])
+        self.actions.setup_bus()
+        self.actions.update_ui_state(self.server_data["status"])
 
         if hasattr(self.console_widget, "btn_kill"):
-            self.console_widget.btn_kill.configure(command=self._action_kill)
+            self.console_widget.btn_kill.configure(command=self.actions.action_kill)
 
-    def _save_java_args(self, event=None):
-        current_args = self.entry_args.get("1.0", "end-1c").strip()
-        if self.server_data.get("java_args") != current_args:
-            self.server_data["java_args"] = current_args
-            bus.emit(
-                Signal.CMD_UPDATE_JAVA_ARGS,
-                server_id=self.server_data["id"],
-                java_args=current_args,
-            )
+    def _show_external_folders_menu(self):
+        menu = tk.Menu(self, tearoff=0)
+        menu.add_command(
+            label="Root directory",
+            command=lambda: self.actions.open_in_system_explorer(),
+        )
+        menu.add_command(
+            label="plugins",
+            command=lambda: self.actions.open_in_system_explorer("plugins"),
+        )
+        menu.add_command(
+            label="config",
+            command=lambda: self.actions.open_in_system_explorer("config"),
+        )
+        menu.add_command(
+            label="logs", command=lambda: self.actions.open_in_system_explorer("logs")
+        )
+        menu.add_command(
+            label="crash-reports",
+            command=lambda: self.actions.open_in_system_explorer("crash-reports"),
+        )
 
-        if event:
-            self.focus_set()
-            return "break"
+        x = self.btn_open_external.winfo_rootx()
+        y = self.btn_open_external.winfo_rooty() + self.btn_open_external.winfo_height()
+        menu.post(x, y)
 
-    def _cleanup(self, event):
-        if str(event.widget) == str(self):
-            try:
-                bus.unsubscribe(Signal.SERVER_STATUS_CHANGED, self._on_status_changed)
-            except ValueError:
-                pass
-
-    def _action_kill(self):
-        bus.emit(Signal.CMD_KILL_SERVER, server_id=self.server_data["id"])
-
-    def _on_status_changed(self, server_id: int, new_status: str):
-        if server_id == self.server_data["id"]:
-            self.server_data["status"] = new_status
-            self._update_ui_state(new_status)
-
-    def _update_ui_state(self, status: str):
-        if not self.winfo_exists():
-            return
-        info_text = f"{self.server_data['core']} {self.server_data['version']}  •  Port: {self.server_data['port']}  •  Status: {status}"
-        self.lbl_info.configure(text=info_text)
-
-        is_running = status == "Running"
-
-        if hasattr(self.console_widget, "btn_start"):
-            self.console_widget.btn_start.configure(
-                state="disabled" if is_running else "normal"
-            )
-        if hasattr(self.console_widget, "btn_stop"):
-            self.console_widget.btn_stop.configure(
-                state="normal" if is_running else "disabled"
-            )
-        if hasattr(self.console_widget, "btn_kill"):
-            self.console_widget.btn_kill.configure(
-                state="normal" if is_running else "disabled"
-            )
-
-    def _start_drag(self, event):
-        self._drag_start_x = event.x_root
-        self._start_explorer_width = self.explorer_widget.cget("width")
-
-    def _on_drag(self, event):
-        if self._is_compact:
-            return
-
-        delta = self._drag_start_x - event.x_root
-        new_width = self._start_explorer_width + delta
-
-        max_width = self.middle_frame.winfo_width() - 300
-        new_width = max(150, min(new_width, max_width))
-
-        self.middle_frame.grid_columnconfigure(2, minsize=new_width)
-        self.explorer_widget.configure(width=new_width)
-
-    def _on_resize(self, event):
-        if event.widget != self:
-            return
-
-        width = self.winfo_width()
-        if width < 100:
-            return
-
-        if width < 850 and not self._is_compact:
-            self.splitter.grid_remove()
-            self.explorer_widget.grid(
-                row=1, column=0, sticky="nsew", padx=0, pady=(15, 0)
-            )
-            self.middle_frame.grid_columnconfigure(2, minsize=0)
-            self._is_compact = True
-        elif width >= 850 and self._is_compact:
-            self.splitter.grid()
-            self.explorer_widget.grid(row=0, column=2, sticky="nsew", padx=0, pady=0)
-            self.middle_frame.grid_columnconfigure(
-                2, minsize=self.explorer_widget.cget("width")
-            )
-            self._is_compact = False
+    def destroy(self):
+        if hasattr(self, "server_data"):
+            server_id = self.server_data["id"]
+            config.set(f"server_{server_id}_geometry", self.geometry())
+            self.actions.save_state()
+            if (
+                server_id in ServerWindow._open_windows
+                and ServerWindow._open_windows[server_id] == self
+            ):
+                del ServerWindow._open_windows[server_id]
+        self.actions.cleanup_bus()
+        super().destroy()
