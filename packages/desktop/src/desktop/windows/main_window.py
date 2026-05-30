@@ -7,7 +7,7 @@ class MainWindow(ctk.CTk):
         super().__init__()
         self.geometry("800x600")
         self.minsize(350, 200)
-        self.title("Serv Launcher")
+        self.title("Astra Launcher")
 
         self.status_bar = StatusBar(self)
         self.status_bar.pack(side="bottom", fill="x")

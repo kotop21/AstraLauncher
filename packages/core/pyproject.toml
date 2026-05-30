@@ -1,7 +1,7 @@
 [project]
 name = "core"
 version = "0.1.0"
-description = "Core utils for Serv Launcher"
+description = "Core utils for Astra Launcher"
 requires-python = ">=3.13"
 dependencies = []
 

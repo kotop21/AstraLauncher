@@ -1,0 +1,117 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="ServLauncher">
+  <main class="container">
+    
+    <div class="main-content">
+      <h1 class="general-title">Hello, Astra Launcher</h1>
+      <p class="subtitle">A lightweight, lightning-fast open-source workspace tailored for modern Minecraft servers.</p>
+
+      <div class="hero-buttons">
+        <a href="#"><button>Download</button></a>
+        <a href="https://github.com/kotop21/ServLauncher"><button>GitHub</button></a>
+      </div>
+    </div>
+
+    <img src="/preview.png" alt="Astra Launcher Preview" loading="eager" />
+
+    <h1 class="title">Features</h1>
+
+    <ul>
+      <li>
+        <strong>Молниеносный запуск</strong> — Старт инстансов за доли секунды без тяжелого оверхеда.
+      </li>
+      <li>
+        <strong>Модульная архитектура</strong> — Изолированные модули для плагинов, конфигов и логов.
+      </li>
+      <li>
+        <strong>Живой мониторинг</strong> — Отслеживание ресурсов процессора и памяти в реальном времени.
+      </li>
+      <li>
+        <strong>Полный контроль</strong> — Удобное управление консолью, авто-бэкапы и быстрая смена ядер.
+      </li>
+    </ul>
+
+    <footer>
+      <p>Tailored for server admins by <strong>kotop21</strong></p>
+    </footer>
+
+  </main>
+</Layout>
+
+<style>
+  hr {
+    margin-top: 30px;
+    margin-bottom: 30px;
+  }
+
+  footer {
+    margin-top: 50px;
+    margin-bottom: 50px;
+    text-align: center;
+  }
+  footer p {
+     color: lightgray;   
+  }
+
+  .main-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .hero-buttons {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    margin-bottom: 40px;
+  }
+
+  .hero-buttons button {
+    font-size: 18px;
+    padding: 12px 32px;
+    font-weight: 600;
+  }
+
+  .github-link {
+    font-size: 18px;
+    font-weight: 600;
+    text-decoration: underline;
+  }
+
+  .general-title {
+    font-size: 56px;
+    font-weight: 800;
+    letter-spacing: -3px;
+
+    text-shadow:
+      0 0 24px rgba(255,255,255,0.08),
+      0 0 60px rgba(96,165,250,0.08);
+  }
+  .title {
+    font-size: 45px;
+    text-decoration: underline;
+  }
+
+  .subtitle {
+    color: lightgray;
+    padding: 12px 16px;
+  }
+  
+  .container {
+    max-width: 46%;
+    padding-top: 15vh;
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    filter: 
+      drop-shadow(0 20px 50px rgba(255, 255, 255, 0.08))
+      drop-shadow(0 -15px 40px rgba(255, 255, 255, 0.05));
+  }
+</style>

@@ -1,7 +1,7 @@
 [project]
-name = "servlauncher"
+name = "astra-launcher"
 version = "0.1.0"
-description = "Serv launcher: easy and light server manager for minecraft."
+description = "Astra launcher: easy and light server manager for minecraft."
 authors = [{ name = "kotop21", github = "github.com/kotop21" }]
 readme = "README.md"
 requires-python = ">=3.13"

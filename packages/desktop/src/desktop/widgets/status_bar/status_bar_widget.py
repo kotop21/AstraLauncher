@@ -12,7 +12,7 @@ class StatusBar(ctk.CTkFrame):
         self.status_label.grid(row=0, column=0, sticky="ew")
 
         self.author_label = ctk.CTkLabel(
-            self, text="Author: kotop21", anchor="e", padx=10
+            self, text="Author: kotop21 ", anchor="e", padx=10
         )
         self.author_label.grid(row=0, column=1, sticky="e")
 
