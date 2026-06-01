@@ -34,15 +34,38 @@ jobs:
         shell: bash
         run: |
           VERSION=$(uv run python -c "import tomllib; print(tomllib.load(open('packages/desktop/pyproject.toml', 'rb'))['project']['version'])")
-          SHA=$(git rev-parse --short HEAD)
-          echo "BUILD_ID=${VERSION}-${SHA}" >> $GITHUB_ENV
+          echo "BUILD_ID=${VERSION}" >> $GITHUB_ENV
 
       - run: uv run pyinstaller --noconfirm --onedir --windowed --optimize 2 --name AstraLauncher-${{ runner.os }} --exclude-module PyQt5 --exclude-module PyQt6 --exclude-module PySide6 --exclude-module numpy --exclude-module pandas --exclude-module matplotlib --exclude-module pytest --hidden-import customtkinter --collect-all customtkinter --hidden-import ttkbootstrap_icons --collect-all ttkbootstrap_icons --hidden-import ttkbootstrap_icons_lucide --collect-all ttkbootstrap_icons_lucide --paths packages/core/src --paths packages/desktop/src packages/desktop/src/desktop/app.py
+
+      
+      - name: Compress DEV build (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          cd dist
+          zip -r -9 AstraLauncher-DEV-macOS-${{ env.BUILD_ID }}.zip AstraLauncher-macOS.app
+          cd ..
+
+      - name: Compress DEV build (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          cd dist
+          tar -czvf AstraLauncher-DEV-Linux-${{ env.BUILD_ID }}.tar.gz AstraLauncher-Linux
+          cd ..
+
+      - name: Compress DEV build (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          Compress-Archive -Path dist\AstraLauncher-Windows -DestinationPath dist\AstraLauncher-DEV-Windows-${env:BUILD_ID}.zip
 
       - uses: actions/upload-artifact@v4
         with:
           name: AstraLauncher-DEV-${{ runner.os }}-${{ env.BUILD_ID }}
-          path: dist/AstraLauncher-${{ runner.os }}*
+          path: |
+            dist/*.zip
+            dist/*.tar.gz
+
 
       - if: matrix.os == 'macos-latest'
         run: |
