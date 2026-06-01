@@ -5,7 +5,11 @@ description = "Astra launcher: easy and light server manager for minecraft."
 authors = [{ name = "kotop21", github = "github.com/kotop21" }]
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = ["core", "desktop"]
+
+[tool.uv.sources]
+core = { workspace = true }
+desktop = { workspace = true }
 
 [tool.uv.workspace]
 members = ["packages/*"]
