@@ -13,6 +13,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
+
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -22,7 +23,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: "3.13"
 
       - run: uv sync --all-packages
 
@@ -38,19 +39,73 @@ jobs:
 
       - name: Build app
         run: |
-          uv run pyinstaller --noconfirm --onedir --windowed --optimize 2 --name AstraLauncher-${{ runner.os }} --exclude-module PyQt5 --exclude-module PyQt6 --exclude-module PySide6 --exclude-module numpy --exclude-module pandas --exclude-module matplotlib --exclude-module pytest --hidden-import customtkinter --collect-all customtkinter --hidden-import ttkbootstrap_icons --collect-all ttkbootstrap_icons --hidden-import ttkbootstrap_icons_lucide --collect-all ttkbootstrap_icons_lucide --paths packages/core/src --paths packages/desktop/src packages/desktop/src/desktop/app.py
+          uv run pyinstaller \
+            --noconfirm \
+            --onedir \
+            --windowed \
+            --optimize 2 \
+            --name AstraLauncher-${{ runner.os }} \
+            --exclude-module PyQt5 \
+            --exclude-module PyQt6 \
+            --exclude-module PySide6 \
+            --exclude-module numpy \
+            --exclude-module pandas \
+            --exclude-module matplotlib \
+            --exclude-module pytest \
+            --hidden-import customtkinter \
+            --collect-all customtkinter \
+            --hidden-import ttkbootstrap_icons \
+            --collect-all ttkbootstrap_icons \
+            --hidden-import ttkbootstrap_icons_lucide \
+            --collect-all ttkbootstrap_icons_lucide \
+            --collect-data certifi \
+            --paths packages/core/src \
+            --paths packages/desktop/src \
+            packages/desktop/src/desktop/app.py
 
-      - name: Build Windows portable
+      - name: Build Windows Portable
         if: matrix.os == 'windows-latest'
         shell: pwsh
         run: |
-          uv run pyinstaller --noconfirm --onefile --windowed --optimize 2 --name AstraLauncher-Windows-Portable --exclude-module PyQt5 --exclude-module PyQt6 --exclude-module PySide6 --exclude-module numpy --exclude-module pandas --exclude-module matplotlib --exclude-module pytest --hidden-import customtkinter --collect-all customtkinter --hidden-import ttkbootstrap_icons --collect-all ttkbootstrap_icons --hidden-import ttkbootstrap_icons_lucide --collect-all ttkbootstrap_icons_lucide --paths packages/core/src --paths packages/desktop/src packages/desktop/src/desktop/app.py
+          uv run pyinstaller `
+            --noconfirm `
+            --onefile `
+            --windowed `
+            --optimize 2 `
+            --name AstraLauncher-Windows-Portable `
+            --exclude-module PyQt5 `
+            --exclude-module PyQt6 `
+            --exclude-module PySide6 `
+            --exclude-module numpy `
+            --exclude-module pandas `
+            --exclude-module matplotlib `
+            --exclude-module pytest `
+            --hidden-import customtkinter `
+            --collect-all customtkinter `
+            --hidden-import ttkbootstrap_icons `
+            --collect-all ttkbootstrap_icons `
+            --hidden-import ttkbootstrap_icons_lucide `
+            --collect-all ttkbootstrap_icons_lucide `
+            --collect-data certifi `
+            --paths packages/core/src `
+            --paths packages/desktop/src `
+            packages/desktop/src/desktop/app.py
 
       - name: Package macOS
         if: matrix.os == 'macos-latest'
         run: |
           brew install create-dmg
-          create-dmg --volname "Astra Launcher" --window-pos 200 120 --window-size 600 400 --icon-size 100 --icon "AstraLauncher-macOS.app" 175 120 --hide-extension "AstraLauncher-macOS.app" --app-drop-link 425 120 "AstraLauncher-macOS-${{ env.BUILD_ID }}.dmg" "dist/AstraLauncher-macOS.app"
+
+          create-dmg \
+            --volname "Astra Launcher" \
+            --window-pos 200 120 \
+            --window-size 600 400 \
+            --icon-size 100 \
+            --icon "AstraLauncher-macOS.app" 175 120 \
+            --hide-extension "AstraLauncher-macOS.app" \
+            --app-drop-link 425 120 \
+            "AstraLauncher-macOS-${{ env.BUILD_ID }}.dmg" \
+            "dist/AstraLauncher-macOS.app"
 
       - name: Package Linux
         if: matrix.os == 'ubuntu-latest'
@@ -81,25 +136,30 @@ jobs:
 
           iscc setup.iss
 
-      - name: Upload macOS artifact
+      - name: Upload macOS
         if: matrix.os == 'macos-latest'
         uses: actions/upload-artifact@v4
         with:
           name: AstraLauncher-macOS-${{ env.BUILD_ID }}
           path: "*.dmg"
 
-      - name: Upload Linux artifact
+      - name: Upload Linux
         if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
         with:
           name: AstraLauncher-Linux-${{ env.BUILD_ID }}
           path: "*.tar.gz"
 
-      - name: Upload Windows artifacts
+      - name: Upload Windows Portable
         if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: AstraLauncher-Windows-${{ env.BUILD_ID }}
-          path: |
-            dist/AstraLauncher-Windows-Portable.exe
-            *Windows-Installer*.exe
+          name: AstraLauncher-Windows-Portable-${{ env.BUILD_ID }}
+          path: dist/AstraLauncher-Windows-Portable.exe
+
+      - name: Upload Windows Installer
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: AstraLauncher-Windows-Installer-${{ env.BUILD_ID }}
+          path: "*Windows-Installer*.exe"
