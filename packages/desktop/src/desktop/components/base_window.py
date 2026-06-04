@@ -5,9 +5,8 @@ class BaseWindow(ctk.CTkToplevel):
     def __init__(
         self, parent, title="Launcher", size=(800, 600), saved_geometry=None, **kwargs
     ):
-        super().__init__(master=parent, **kwargs)
-
-        self.withdraw()
+        root_master = parent.winfo_toplevel() if parent else None
+        super().__init__(master=root_master, **kwargs)
 
         self.title(title)
         self.resizable(False, False)
@@ -21,9 +20,4 @@ class BaseWindow(ctk.CTkToplevel):
             y = (screen_h // 2) - (size[1] // 2)
             self.geometry(f"{size[0]}x{size[1]}+{x}+{y}")
 
-        self.after(10, self._reveal)
-
-    def _reveal(self):
-        if self.winfo_exists():
-            self.deiconify()
-            self.focus()
+        self.focus()
