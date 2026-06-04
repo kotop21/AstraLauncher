@@ -1,11 +1,14 @@
 import tkinter.messagebox as messagebox
 
 from core.events import Signal, bus
+from core.utils import setup_logging
 
+from desktop.version import __version__ as version
 from desktop.windows import MainWindow
 
 
 def main():
+    setup_logging()
     app = MainWindow()
 
     def on_active_servers_status(has_active: bool):
@@ -28,7 +31,7 @@ def main():
 
     app.protocol("WM_DELETE_WINDOW", on_closing)
 
-    print("[Desktop] Starting desktop launcher!")
+    print(f"Desktop version {version}")
     app.mainloop()
 
     bus.unsubscribe(Signal.RESPONSE_ACTIVE_SERVERS_STATUS, on_active_servers_status)

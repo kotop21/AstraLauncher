@@ -5,7 +5,7 @@ from core.base_storage import BaseStorage
 
 
 class InstanceStorage(BaseStorage):
-    def __init__(self, app_name: str = "ServLauncher"):
+    def __init__(self, app_name: str = "AstraLauncher"):
         super().__init__(app_name)
         self.instances_dir = self.app_dir / "instances"
         self.instances_dir.mkdir(parents=True, exist_ok=True)

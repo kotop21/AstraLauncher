@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 class BaseStorage:
-    def __init__(self, app_name: str = "ServLauncher"):
+    def __init__(self, app_name: str = "AstraLauncher"):
         self.app_dir = self._get_app_dir(app_name)
         self.app_dir.mkdir(parents=True, exist_ok=True)
 
