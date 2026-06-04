@@ -2,14 +2,33 @@ import time
 import tkinter.messagebox as messagebox
 
 from core.events import Signal, bus
+from desktop.components.window_opener_mixin import WindowOpenerMixin
 from desktop.windows.progress_window.progress_window import ProgressWindow
 
 
-class InstanceSelectorActions:
+class InstanceSelectorActions(WindowOpenerMixin):
     def __init__(self, widget):
         self.widget = widget
         self.progress_windows = {}
         self._last_update_time = {}
+        self.init_window_manager()
+
+    def manage_server(self):
+        if hasattr(self.widget, "_current_context_data"):
+            self.open_server_window(self.widget._current_context_data)
+
+    def on_double_click(self, data):
+        self.open_server_window(data)
+
+    def open_server_window(self, data):
+        from desktop.windows import ServerWindow
+
+        self.open_managed_window(
+            ServerWindow,
+            self.widget.winfo_toplevel(),
+            window_key=data["id"],
+            server_data=data,
+        )
 
     def delete_server(self):
         if hasattr(self.widget, "_current_context_data"):
@@ -45,10 +64,6 @@ class InstanceSelectorActions:
                 else self.widget.default_color
             )
         bus.emit(Signal.CMD_REQUEST_SERVER, server_id=server_id)
-
-    def on_double_click(self, data):
-        self.widget._current_context_data = data
-        self.widget.cmd_manage._on_click()
 
     def on_download_started(self, server_id, is_imported, server_name):
         def show():

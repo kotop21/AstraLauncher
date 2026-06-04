@@ -6,11 +6,11 @@ class BaseWindow(ctk.CTkToplevel):
         self, parent, title="Launcher", size=(800, 600), saved_geometry=None, **kwargs
     ):
         super().__init__(master=parent, **kwargs)
+
+        self.attributes("-alpha", 0.0)
+
         self.title(title)
         self.resizable(False, False)
-
-        self.withdraw()
-        self.update_idletasks()
 
         if saved_geometry and "+-" not in saved_geometry and "-+" not in saved_geometry:
             self.geometry(saved_geometry)
@@ -21,5 +21,6 @@ class BaseWindow(ctk.CTkToplevel):
             y = (screen_h // 2) - (size[1] // 2)
             self.geometry(f"{size[0]}x{size[1]}+{x}+{y}")
 
-        self.deiconify()
+        self.update_idletasks()
+        self.attributes("-alpha", 1.0)
         self.focus()

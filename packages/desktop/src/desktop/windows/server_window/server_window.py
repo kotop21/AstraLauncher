@@ -12,22 +12,8 @@ from .server_actions import ServerActions
 
 
 class ServerWindow(BaseWindow):
-    _open_windows = {}
-
     def __init__(self, master, server_data, **kwargs):
         server_id = server_data["id"]
-
-        if server_id in ServerWindow._open_windows:
-            existing_win = ServerWindow._open_windows[server_id]
-            if existing_win.winfo_exists():
-                existing_win.focus_force()
-                super().__init__(
-                    parent=master, title="Duplicate", size=(1, 1), **kwargs
-                )
-                self.withdraw()
-                self.after(0, self.destroy)
-                return
-
         saved_geom = config.get(f"server_{server_id}_geometry")
 
         super().__init__(
@@ -39,7 +25,6 @@ class ServerWindow(BaseWindow):
         )
 
         self.server_data = server_data
-        ServerWindow._open_windows[server_id] = self
 
         self.resizable(True, True)
         self.minsize(500, 300)
@@ -193,14 +178,6 @@ class ServerWindow(BaseWindow):
 
             if hasattr(self, "actions"):
                 self.actions.save_state()
-
-            if (
-                server_id in ServerWindow._open_windows
-                and ServerWindow._open_windows[server_id] == self
-            ):
-                del ServerWindow._open_windows[server_id]
-
-        if hasattr(self, "actions"):
-            self.actions.cleanup_bus()
+                self.actions.cleanup_bus()
 
         super().destroy()
