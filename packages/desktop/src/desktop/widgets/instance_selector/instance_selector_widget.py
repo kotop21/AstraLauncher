@@ -145,18 +145,20 @@ class InstanceSelectorWidget(ctk.CTkScrollableFrame):
         for w in widgets:
             w.bind(
                 "<Button-1>",
-                lambda e, r=row_index, f=row_frame: self.actions.on_single_click(
-                    r, f._current_data["id"]
+                lambda e, r=row_index, f=row_frame: (
+                    self.actions.on_single_click(r, f._current_data["id"]) or "break"
                 ),
             )
             w.bind(
                 "<Double-Button-1>",
-                lambda e, f=row_frame: self.actions.on_double_click(f._current_data),
+                lambda e, f=row_frame: (
+                    self.actions.on_double_click(f._current_data) or "break"
+                ),
             )
             w.bind(
                 "<Button-3>",
-                lambda e, r=row_index, f=row_frame: self._show_context_menu(
-                    e, f._current_data, r
+                lambda e, r=row_index, f=row_frame: (
+                    self._show_context_menu(e, f._current_data, r) or "break"
                 ),
             )
 

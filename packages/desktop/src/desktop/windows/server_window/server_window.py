@@ -21,18 +21,25 @@ class ServerWindow(BaseWindow):
             existing_win = ServerWindow._open_windows[server_id]
             if existing_win.winfo_exists():
                 existing_win.focus_force()
-                super().__init__(master, title="Duplicate", size=(1, 1), **kwargs)
+                super().__init__(
+                    parent=master, title="Duplicate", size=(1, 1), **kwargs
+                )
                 self.withdraw()
                 self.after(0, self.destroy)
                 return
 
-        super().__init__(master, title=server_data["name"], size=(950, 650), **kwargs)
+        saved_geom = config.get(f"server_{server_id}_geometry")
+
+        super().__init__(
+            parent=master,
+            title=server_data["name"],
+            size=(950, 650),
+            saved_geometry=saved_geom,
+            **kwargs,
+        )
+
         self.server_data = server_data
         ServerWindow._open_windows[server_id] = self
-
-        saved_geom = config.get(f"server_{server_id}_geometry")
-        if saved_geom:
-            self.geometry(saved_geom)
 
         self.resizable(True, True)
         self.minsize(500, 300)
@@ -180,12 +187,20 @@ class ServerWindow(BaseWindow):
     def destroy(self):
         if hasattr(self, "server_data"):
             server_id = self.server_data["id"]
-            config.set(f"server_{server_id}_geometry", self.geometry())
-            self.actions.save_state()
+            geom = self.geometry()
+            if geom and "+-" not in geom and "-+" not in geom:
+                config.set(f"server_{server_id}_geometry", geom)
+
+            if hasattr(self, "actions"):
+                self.actions.save_state()
+
             if (
                 server_id in ServerWindow._open_windows
                 and ServerWindow._open_windows[server_id] == self
             ):
                 del ServerWindow._open_windows[server_id]
-        self.actions.cleanup_bus()
+
+        if hasattr(self, "actions"):
+            self.actions.cleanup_bus()
+
         super().destroy()
