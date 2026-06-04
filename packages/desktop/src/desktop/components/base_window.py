@@ -7,7 +7,7 @@ class BaseWindow(ctk.CTkToplevel):
     ):
         super().__init__(master=parent, **kwargs)
 
-        self.attributes("-alpha", 0.0)
+        self.withdraw()
 
         self.title(title)
         self.resizable(False, False)
@@ -21,6 +21,9 @@ class BaseWindow(ctk.CTkToplevel):
             y = (screen_h // 2) - (size[1] // 2)
             self.geometry(f"{size[0]}x{size[1]}+{x}+{y}")
 
-        self.update_idletasks()
-        self.attributes("-alpha", 1.0)
-        self.focus()
+        self.after(10, self._reveal)
+
+    def _reveal(self):
+        if self.winfo_exists():
+            self.deiconify()
+            self.focus()
