@@ -12,6 +12,7 @@ class InstanceSelectorActions(WindowOpenerMixin):
         self.widget = widget
         self.progress_windows = {}
         self._last_update_time = {}
+        self._last_open_time = {}
         self.init_window_manager()
 
     def manage_server(self):
@@ -22,9 +23,20 @@ class InstanceSelectorActions(WindowOpenerMixin):
         self.open_server_window(data)
 
     def open_server_window(self, data):
+        server_id = data.get("id")
+        now = time.time()
+        last_open = self._last_open_time.get(server_id, 0)
+        if now - last_open < 0.35:
+            logging.info(
+                f"InstanceSelectorActions: ignored rapid re-open for server_id={server_id}"
+            )
+            return
+
         logging.info(
-            f"InstanceSelectorActions: opening ServerWindow for server_id={data.get('id')}"
+            f"InstanceSelectorActions: opening ServerWindow for server_id={server_id}"
         )
+        self._last_open_time[server_id] = now
+
         from desktop.windows import ServerWindow
 
         self.open_managed_window(
