@@ -1,3 +1,4 @@
+import logging
 import traceback
 from enum import Enum, auto
 from typing import Callable, Dict, List
@@ -67,6 +68,10 @@ class StrictEventBus:
 
     def emit(self, signal: Signal, **kwargs):
         if not self._listeners[signal]:
+            logging.error(
+                f"[EventBus] Security Error: Signal {signal.name} was sent, "
+                "but no one subscribed to it!"
+            )
             raise RuntimeError(
                 f"[EventBus] Security Error: Signal {signal.name} was sent, "
                 "but no one subscribed to it!"

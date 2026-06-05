@@ -1,3 +1,4 @@
+import logging
 import time
 import tkinter.messagebox as messagebox
 
@@ -21,6 +22,9 @@ class InstanceSelectorActions(WindowOpenerMixin):
         self.open_server_window(data)
 
     def open_server_window(self, data):
+        logging.info(
+            f"InstanceSelectorActions: opening ServerWindow for server_id={data.get('id')}"
+        )
         from desktop.windows import ServerWindow
 
         self.open_managed_window(
@@ -59,9 +63,11 @@ class InstanceSelectorActions(WindowOpenerMixin):
     def on_single_click(self, row_index, server_id):
         for i, frame in enumerate(self.widget.row_frames):
             frame.configure(
-                fg_color=self.widget.selected_color
-                if i == row_index
-                else self.widget.default_color
+                fg_color=(
+                    self.widget.selected_color
+                    if i == row_index
+                    else self.widget.default_color
+                )
             )
         bus.emit(Signal.CMD_REQUEST_SERVER, server_id=server_id)
 

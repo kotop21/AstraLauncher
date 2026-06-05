@@ -1,3 +1,4 @@
+import logging
 import tkinter as tk
 from typing import Dict, Type
 
@@ -28,9 +29,11 @@ class WindowOpenerMixin:
             try:
                 win = window_class(main_app, **kwargs)
                 self._opened_windows[window_key] = win
-                print(f"[Desktop] Opened window: {window_class.__name__}")
+                logging.info(f"[Desktop] Opened window: {window_class.__name__}")
             except Exception as e:
-                print(f"[Desktop] Failed to open window {window_class.__name__}: {e}")
+                logging.error(
+                    f"[Desktop] Failed to open window {window_class.__name__}: {e}"
+                )
                 import traceback
 
                 traceback.print_exc()
@@ -47,7 +50,7 @@ class WindowOpenerMixin:
                 return None
         else:
             win = self._opened_windows[window_key]
-            print(f"[Desktop] Focused existing window: {window_class.__name__}")
+            logging.info(f"[Desktop] Focused existing window: {window_class.__name__}")
 
         def safe_topmost():
             try:
