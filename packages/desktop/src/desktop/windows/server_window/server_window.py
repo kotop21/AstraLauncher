@@ -16,16 +16,11 @@ class ServerWindow(BaseWindow):
     def __init__(self, master, server_data, **kwargs):
         logging.info(f"ServerWindow init start for server {server_data.get('id')}")
         super().__init__(
-            parent=master,
+            parent=None,
             title=server_data["name"],
             size=(950, 650),
             **kwargs,
         )
-
-        try:
-            self.transient(None)
-        except Exception:
-            pass
 
         self.server_data = server_data
 
