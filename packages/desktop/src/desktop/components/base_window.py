@@ -38,7 +38,5 @@ class BaseWindow(ctk.CTkToplevel):
 
     def on_close(self):
         logging.info(f"BaseWindow.on_close called for {self.__class__.__name__}")
-        logging.debug(
-            "BaseWindow.on_close stack:\n" + "".join(traceback.format_stack())
-        )
+        logging.info("BaseWindow.on_close stack:\n" + "".join(traceback.format_stack()))
         self.destroy()
