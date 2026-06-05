@@ -7,18 +7,15 @@ from desktop.widgets.explorer.explorer_widget import ExplorerWidget
 from desktop.windows.server_settings.server_settings import ServerSettingsWindow
 from ttkbootstrap_icons_lucide import LucideIcon
 
-from .server_actions import ServerActions
+from .server_window_actions import ServerActions
 
 
 class ServerWindow(BaseWindow):
     def __init__(self, master, server_data, **kwargs):
-        server_id = server_data["id"]
-
         super().__init__(
             parent=master,
             title=server_data["name"],
             size=(950, 650),
-            window_key=f"server_{server_id}",
             **kwargs,
         )
 

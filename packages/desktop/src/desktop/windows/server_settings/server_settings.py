@@ -10,14 +10,12 @@ class ServerSettingsWindow(BaseWindow):
             parent=parent,
             title=f"Settings - {server_data['name']}",
             size=(450, 250),
-            window_key="server_settings_window",
             resizable=(False, False),
             **kwargs,
         )
         self.server_data = server_data
         self.actions = ServerSettingsActions(self)
 
-        self.transient(parent)
         self.grab_set()
 
         self.lbl_java_args = ctk.CTkLabel(

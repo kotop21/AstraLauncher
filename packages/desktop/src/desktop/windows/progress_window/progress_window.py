@@ -10,12 +10,10 @@ class ProgressWindow(BaseWindow):
             parent=master,
             title=title,
             size=(450, 160),
-            window_key=None,
             resizable=(False, False),
             **kwargs,
         )
 
-        self.transient(master)
         self.grab_set()
 
         self.on_cancel_callback = on_cancel

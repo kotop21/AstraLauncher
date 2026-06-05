@@ -8,13 +8,7 @@ from .add_server_actions import AddServerActions
 
 class AddServerWindow(BaseWindow):
     def __init__(self, parent, **kwargs):
-        super().__init__(
-            parent,
-            title="Add Server",
-            size=(500, 500),
-            window_key="add_server_window",
-            **kwargs,
-        )
+        super().__init__(parent=parent, title="Add Server", size=(500, 500), **kwargs)
 
         self._setup_ui()
 

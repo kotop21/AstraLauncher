@@ -19,7 +19,6 @@ class EditorWindow(BaseWindow):
             parent=master,
             title=f"Editor - {filename}",
             size=(700, 500),
-            window_key=f"editor_{server_id}",
             resizable=(True, True),
             **kwargs,
         )
