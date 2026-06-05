@@ -51,10 +51,20 @@ class WindowOpenerMixin:
         else:
             win = self._opened_windows[window_key]
             logging.info(f"[Desktop] Focused existing window: {window_class.__name__}")
+            logging.info(
+                f"[Desktop] Window state before deiconify: viewable={win.winfo_viewable()}, "
+                f"exists={win.winfo_exists()}"
+            )
 
-        try:
-            if win.winfo_exists():
-                win.deiconify()
-        except Exception:
-            pass
+        def do_show():
+            try:
+                if win.winfo_exists():
+                    win.deiconify()
+                    logging.info(
+                        f"[Desktop] Window state after deiconify: viewable={win.winfo_viewable()}"
+                    )
+            except Exception as e:
+                logging.error(f"[Desktop] Error in deiconify: {e}")
+
+        win.after(10, do_show)
         return win
