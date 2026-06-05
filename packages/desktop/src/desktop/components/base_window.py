@@ -17,6 +17,9 @@ class BaseWindow(ctk.CTkToplevel):
         root_master = parent.winfo_toplevel() if parent else None
         super().__init__(master=root_master, **kwargs)
 
+        if root_master:
+            self.transient(root_master)
+
         self.title(title)
         self.resizable(resizable[0], resizable[1])
         self._window_key = window_key
@@ -27,7 +30,7 @@ class BaseWindow(ctk.CTkToplevel):
 
         is_valid_geom = False
         if saved_geometry and isinstance(saved_geometry, str):
-            match = re.match(r"^(\d+)x(\d+)([-+]\d+)([-+]\d+)$", saved_geometry)
+            match = re.search(r"(\d+)x(\d+)([-+]\d+)([-+]\d+)", saved_geometry)
             if match:
                 w, h, x, y = map(int, match.groups())
                 screen_w = self.winfo_screenwidth()
@@ -35,25 +38,21 @@ class BaseWindow(ctk.CTkToplevel):
                 if (
                     w >= 200
                     and h >= 200
-                    and (x + w > 50)
-                    and (x < screen_w - 50)
-                    and (y + h > 50)
-                    and (y < screen_h - 50)
+                    and (x + w > 0)
+                    and (x < screen_w)
+                    and (y + h > 0)
+                    and (y < screen_h)
                 ):
                     is_valid_geom = True
 
         if is_valid_geom and isinstance(saved_geometry, str):
             self.geometry(saved_geometry)
         else:
-            self.update_idletasks()
             screen_w = self.winfo_screenwidth()
             screen_h = self.winfo_screenheight()
             x = max(0, (screen_w // 2) - (size[0] // 2))
             y = max(0, (screen_h // 2) - (size[1] // 2))
-            self.geometry(f"{size[0]}x{size[1]}+{x}+{y}")
-
-        self.after(100, self.lift)
-        self.after(150, self.focus_force)
+            self.geometry(f"{size[0]}x{size[1]}+{int(x)}+{int(y)}")
 
         self.protocol("WM_DELETE_WINDOW", self._internal_on_close)
 
