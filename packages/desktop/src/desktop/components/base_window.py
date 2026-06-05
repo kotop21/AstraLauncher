@@ -39,5 +39,22 @@ class BaseWindow(ctk.CTkToplevel):
 
     def on_close(self):
         logging.info(f"BaseWindow.on_close called for {self.__class__.__name__}")
+        try:
+            pointer_x = self.winfo_pointerx()
+            pointer_y = self.winfo_pointery()
+            containing = self.winfo_containing(pointer_x, pointer_y)
+            containing_name = containing.__class__.__name__ if containing else "None"
+        except Exception:
+            pointer_x = pointer_y = None
+            containing_name = "unknown"
+
+        focus_widget = self.focus_get()
+        focus_name = focus_widget.__class__.__name__ if focus_widget else "None"
+
+        logging.info(
+            f"BaseWindow.on_close context: focus={focus_name}, "
+            f"pointer=({pointer_x},{pointer_y}), containing={containing_name}, "
+            f"viewable={self.winfo_viewable()}"
+        )
         logging.info("BaseWindow.on_close stack:\n" + "".join(traceback.format_stack()))
         self.destroy()
