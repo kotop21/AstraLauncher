@@ -52,24 +52,11 @@ class WindowOpenerMixin:
             win = self._opened_windows[window_key]
             logging.info(f"[Desktop] Focused existing window: {window_class.__name__}")
 
-        def safe_topmost():
-            try:
-                if win.winfo_exists():
-                    win.attributes("-topmost", False)
-            except Exception:
-                pass
-
         try:
             if win.winfo_exists():
                 win.deiconify()
                 win.lift()
-            win.attributes("-topmost", True)
-            win.after(100, safe_topmost)
-        except Exception:
-            pass
-
-        try:
-            win.focus()
+                win.focus_force()
         except Exception:
             pass
         return win

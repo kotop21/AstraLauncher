@@ -1,4 +1,5 @@
 import logging
+import time
 import tkinter as tk
 import traceback
 
@@ -16,7 +17,8 @@ class ServerWindow(BaseWindow):
     def __init__(self, master, server_data, **kwargs):
         logging.info(f"ServerWindow init start for server {server_data.get('id')}")
         super().__init__(
-            parent=None,
+            parent=master,
+            transient_to_parent=False,
             title=server_data["name"],
             size=(950, 650),
             **kwargs,
@@ -143,6 +145,7 @@ class ServerWindow(BaseWindow):
             logging.info(
                 f"ServerWindow init complete for server {self.server_data.get('id')}"
             )
+            self._close_guard = time.time() + 1.0
         except Exception as e:
             logging.error(
                 f"ServerWindow init failed for server {server_data.get('id')}: {e}"
@@ -154,6 +157,14 @@ class ServerWindow(BaseWindow):
                 except Exception:
                     pass
             raise
+
+    def on_close(self):
+        if getattr(self, "_close_guard", 0) > time.time():
+            logging.info(
+                f"ServerWindow.on_close ignored during initial open for server {self.server_data.get('id')}"
+            )
+            return
+        super().on_close()
 
     def update_name_color(self, is_running: bool):
         color = "#4ade80" if is_running else ("gray10", "#DCE4EE")

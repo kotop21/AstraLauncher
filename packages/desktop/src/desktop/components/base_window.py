@@ -11,6 +11,7 @@ class BaseWindow(ctk.CTkToplevel):
         title="Launcher",
         size=(800, 600),
         resizable=(False, False),
+        transient_to_parent=True,
         window_key=None,
         **kwargs,
     ):
@@ -19,7 +20,7 @@ class BaseWindow(ctk.CTkToplevel):
 
         self.withdraw()
 
-        if root_master:
+        if root_master and transient_to_parent:
             self.transient(root_master)
 
         self.title(title)
