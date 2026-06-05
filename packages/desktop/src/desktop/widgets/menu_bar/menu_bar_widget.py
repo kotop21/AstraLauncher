@@ -14,24 +14,26 @@ class MenuBar(ctk.CTkFrame):
         self.pack_propagate(False)
         self.actions = MenuBarActions(self)
 
-        icon_size = 32
-        icon_color = "#FFFFFF"
+        theme_colors = ctk.ThemeManager.theme["CTkLabel"]["text_color"]
+        light_col = theme_colors[0] if isinstance(theme_colors, list) else "black"
+        dark_col = theme_colors[1] if isinstance(theme_colors, list) else "white"
 
-        self.icon_add = LucideIcon(
-            "circle-plus", size=icon_size, color=icon_color
-        ).image
-        self.icon_folders = LucideIcon("folder", size=icon_size, color=icon_color).image
-        self.icon_settings = LucideIcon(
-            "settings", size=icon_size, color=icon_color
-        ).image
-        self.icon_help = LucideIcon(
-            "circle-help", size=icon_size, color=icon_color
-        ).image
+        icon_size = 32
+
+        self.icon_add = self._create_icon("circle-plus", icon_size, light_col, dark_col)
+        self.icon_folders = self._create_icon("folder", icon_size, light_col, dark_col)
+        self.icon_settings = self._create_icon(
+            "settings", icon_size, light_col, dark_col
+        )
+        self.icon_help = self._create_icon(
+            "circle-help", icon_size, light_col, dark_col
+        )
 
         status_bar = getattr(master, "status_bar", None)
 
         btn_kwargs = {
             "fg_color": "transparent",
+            "text_color": theme_colors,
             "master": self,
             "height": 32,
             "compound": "left",
@@ -70,6 +72,14 @@ class MenuBar(ctk.CTkFrame):
             **btn_kwargs,
         )
         self.btn_help.pack(side="left", padx=5, pady=9)
+
+    def _create_icon(self, name, size, light_color, dark_color):
+        """Создает CTkImage с поддержкой смены тем (Светлая/Темная)."""
+        img_light = LucideIcon(name, size=size, color=light_color).image
+        img_dark = LucideIcon(name, size=size, color=dark_color).image
+        return ctk.CTkImage(
+            light_image=img_light, dark_image=img_dark, size=(size, size)
+        )
 
     def _show_folders_menu(self):
         menu = tk.Menu(self, tearoff=0)

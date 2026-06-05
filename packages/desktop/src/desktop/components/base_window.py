@@ -1,3 +1,5 @@
+import re
+
 import customtkinter as ctk
 from core.app_config import config
 
@@ -25,28 +27,33 @@ class BaseWindow(ctk.CTkToplevel):
 
         is_valid_geom = False
         if saved_geometry and isinstance(saved_geometry, str):
-            try:
-                parts = saved_geometry.replace("+", "x").replace("-", "x").split("x")
-                w = int(parts[0])
-                h = int(parts[1])
-                if w >= 200 and h >= 200:
+            match = re.match(r"^(\d+)x(\d+)([-+]\d+)([-+]\d+)$", saved_geometry)
+            if match:
+                w, h, x, y = map(int, match.groups())
+                screen_w = self.winfo_screenwidth()
+                screen_h = self.winfo_screenheight()
+                if (
+                    w >= 200
+                    and h >= 200
+                    and (x + w > 50)
+                    and (x < screen_w - 50)
+                    and (y + h > 50)
+                    and (y < screen_h - 50)
+                ):
                     is_valid_geom = True
-            except Exception:
-                pass
 
         if is_valid_geom and isinstance(saved_geometry, str):
             self.geometry(saved_geometry)
         else:
+            self.update_idletasks()
             screen_w = self.winfo_screenwidth()
             screen_h = self.winfo_screenheight()
-            x = (screen_w // 2) - (size[0] // 2)
-            y = (screen_h // 2) - (size[1] // 2)
+            x = max(0, (screen_w // 2) - (size[0] // 2))
+            y = max(0, (screen_h // 2) - (size[1] // 2))
             self.geometry(f"{size[0]}x{size[1]}+{x}+{y}")
 
-        self.lift()
-        self.attributes("-topmost", True)
-        self.after(10, lambda: self.attributes("-topmost", False))
-        self.focus()
+        self.after(100, self.lift)
+        self.after(150, self.focus_force)
 
         self.protocol("WM_DELETE_WINDOW", self._internal_on_close)
 
