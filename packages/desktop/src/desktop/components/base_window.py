@@ -33,12 +33,12 @@ class BaseWindow(ctk.CTkToplevel):
         y = max(0, (screen_h // 2) - (size[1] // 2))
         self.geometry(f"{size[0]}x{size[1]}+{int(x)}+{int(y)}")
 
-        self.deiconify()
-
         self.protocol("WM_DELETE_WINDOW", self.on_close)
         logging.info(
             f"BaseWindow protocol WM_DELETE_WINDOW registered for {self.__class__.__name__}"
         )
+
+        self.deiconify()
 
     def on_close(self):
         logging.info(f"BaseWindow.on_close called for {self.__class__.__name__}")
