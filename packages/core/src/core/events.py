@@ -1,3 +1,4 @@
+import traceback
 from enum import Enum, auto
 from typing import Callable, Dict, List
 
@@ -72,7 +73,11 @@ class StrictEventBus:
             )
 
         for callback in self._listeners[signal]:
-            callback(**kwargs)
+            try:
+                callback(**kwargs)
+            except Exception as e:
+                print(f"[EventBus] Error in callback {callback}: {e}")
+                traceback.print_exc()
 
 
 bus = StrictEventBus()

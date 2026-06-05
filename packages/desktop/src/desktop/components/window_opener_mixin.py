@@ -24,10 +24,27 @@ class WindowOpenerMixin:
 
             kwargs.pop("parent", None)
             kwargs.pop("master", None)
+            win = None
+            try:
+                win = window_class(main_app, **kwargs)
+                self._opened_windows[window_key] = win
+                print(f"[Desktop] Opened window: {window_class.__name__}")
+            except Exception as e:
+                print(f"[Desktop] Failed to open window {window_class.__name__}: {e}")
+                import traceback
 
-            win = window_class(main_app, **kwargs)
-            self._opened_windows[window_key] = win
-            print(f"[Desktop] Opened window: {window_class.__name__}")
+                traceback.print_exc()
+                if (
+                    win is not None
+                    and hasattr(win, "winfo_exists")
+                    and win.winfo_exists()
+                ):
+                    try:
+                        win.destroy()
+                    except Exception:
+                        pass
+                self._opened_windows.pop(window_key, None)
+                return None
         else:
             win = self._opened_windows[window_key]
             print(f"[Desktop] Focused existing window: {window_class.__name__}")
