@@ -36,6 +36,9 @@ class BaseWindow(ctk.CTkToplevel):
         self.deiconify()
 
         self.protocol("WM_DELETE_WINDOW", self.on_close)
+        logging.info(
+            f"BaseWindow protocol WM_DELETE_WINDOW registered for {self.__class__.__name__}"
+        )
 
     def on_close(self):
         logging.info(f"BaseWindow.on_close called for {self.__class__.__name__}")
@@ -54,7 +57,8 @@ class BaseWindow(ctk.CTkToplevel):
         logging.info(
             f"BaseWindow.on_close context: focus={focus_name}, "
             f"pointer=({pointer_x},{pointer_y}), containing={containing_name}, "
-            f"viewable={self.winfo_viewable()}"
+            f"viewable={self.winfo_viewable()}, "
+            f"x={self.winfo_x()}, y={self.winfo_y()}"
         )
         logging.info("BaseWindow.on_close stack:\n" + "".join(traceback.format_stack()))
         self.destroy()

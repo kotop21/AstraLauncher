@@ -55,7 +55,6 @@ class WindowOpenerMixin:
         try:
             if win.winfo_exists():
                 win.deiconify()
-                win.lift()
         except Exception:
             pass
         return win
