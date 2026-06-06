@@ -7,8 +7,16 @@ from typing import List, Optional, Tuple
 
 def _get_java_version(java_path: str) -> Optional[str]:
     try:
+        creationflags = 0
+        if os.name == "nt":
+            creationflags = subprocess.CREATE_NO_WINDOW
+
         result = subprocess.run(
-            [java_path, "-version"], capture_output=True, text=True, check=True
+            [java_path, "-version"],
+            capture_output=True,
+            text=True,
+            check=True,
+            creationflags=creationflags,
         )
         for line in result.stderr.splitlines():
             if "version" in line:
