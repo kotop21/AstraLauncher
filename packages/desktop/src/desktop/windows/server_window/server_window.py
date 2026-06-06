@@ -17,8 +17,8 @@ class ServerWindow(BaseWindow):
         logging.info(f"ServerWindow init start for server {server_data.get('id')}")
         super().__init__(
             parent=master,
-            transient_to_parent=False,
             title=server_data["name"],
+            resizable=(True, True),
             size=(950, 650),
             **kwargs,
         )
@@ -26,7 +26,6 @@ class ServerWindow(BaseWindow):
         self.server_data = server_data
 
         try:
-            self.resizable(True, True)
             self.minsize(500, 300)
 
             self.actions = ServerActions(self)
@@ -157,9 +156,6 @@ class ServerWindow(BaseWindow):
 
     def on_close(self):
         if getattr(self, "_close_guard", 0) > time.time():
-            logging.info(
-                f"ServerWindow.on_close ignored during initial open for server {self.server_data.get('id')}"
-            )
             return
         super().on_close()
 
@@ -195,12 +191,6 @@ class ServerWindow(BaseWindow):
         menu.post(x, y)
 
     def destroy(self):
-        logging.info(
-            f"ServerWindow destroy called for server {getattr(self, 'server_data', {}).get('id', None)}"
-        )
-        logging.info(
-            "ServerWindow.destroy stack:\n" + "".join(traceback.format_stack())
-        )
         if hasattr(self, "actions"):
             self.actions.save_state()
             self.actions.cleanup_bus()
