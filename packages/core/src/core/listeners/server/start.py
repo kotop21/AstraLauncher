@@ -58,6 +58,13 @@ class StartServerListener(BaseListener):
             str(server_dir),
             server.get("core", ""),
         )
+
+        if process is None:
+            print(
+                f"[Core-listener] Failed to start server {server_id}: java not found or process failed to start"
+            )
+            return
+
         state.set_process(server_id, process)
 
         state.update_server_status(server_id, "Running")

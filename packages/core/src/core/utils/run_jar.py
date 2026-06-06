@@ -1,5 +1,6 @@
 import os
 import shlex
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -7,7 +8,14 @@ from pathlib import Path
 def run_jar(
     jar_path: str, java_args: str, cwd: str, core_name: str = ""
 ) -> subprocess.Popen:
-    args = ["java"] + shlex.split(java_args) + ["-jar", jar_path]
+    java_exec = shutil.which("java")
+    if not java_exec:
+        print(
+            f"[Core-util] Error: 'java' executable not found in PATH. Cannot start jar {jar_path}"
+        )
+        return None
+
+    args = [java_exec] + shlex.split(java_args) + ["-jar", jar_path]
 
     no_gui_cores = ["velocity", "bungeecord", "waterfall"]
 
@@ -23,16 +31,20 @@ def run_jar(
     if os.name == "nt":
         creationflags = subprocess.CREATE_NO_WINDOW
 
-    process = subprocess.Popen(
-        args,
-        cwd=cwd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        stdin=subprocess.PIPE,
-        text=True,
-        bufsize=1,
-        creationflags=creationflags,
-    )
+    try:
+        process = subprocess.Popen(
+            args,
+            cwd=cwd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            stdin=subprocess.PIPE,
+            text=True,
+            bufsize=1,
+            creationflags=creationflags,
+        )
+    except FileNotFoundError as e:
+        print(f"[Core-util] Failed to start process: {e}")
+        return None
 
     print(f"[Core-util] Run jar: {' '.join(args)}")
     return process
