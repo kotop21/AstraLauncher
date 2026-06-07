@@ -29,6 +29,7 @@ class Signal(Enum):
     CMD_CANCEL_DOWNLOAD = auto()
     CMD_CHECK_ACTIVE_SERVERS = auto()
     CMD_CHECK_JAVA = auto()
+    CMD_OPEN_URL = auto()
 
     EVENT_DOWNLOAD_PROGRESS = auto()
     EVENT_DOWNLOAD_COMPLETE = auto()

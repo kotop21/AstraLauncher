@@ -1,5 +1,6 @@
 import core.listeners.server as server_listeners
 
+from .browser_listener import BrowserListener
 from .check_java import JavaCheckListener
 from .dialog import DialogListener
 from .open_folder import OpenFolderListener
@@ -11,3 +12,4 @@ open_folder = OpenFolderListener()
 user_file_manager = UserFileManagerListener()
 dialog = DialogListener()
 check_java = JavaCheckListener()
+browser_listener = BrowserListener()

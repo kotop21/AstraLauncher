@@ -92,10 +92,10 @@ class MenuBar(ctk.CTkFrame):
             label="Open launcher repository",
             command=self.actions.open_repository,
         )
-        menu.add_command(
-            label="Support the developer",
-            command=self.actions.support_developer,
-        )
+        # menu.add_command(
+        #     label="Support the developer",
+        #     command=self.actions.support_developer,
+        # )
         menu.add_command(
             label="Report an issue / suggest a feature",
             command=self.actions.report_issue,

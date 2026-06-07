@@ -13,17 +13,13 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: astral-sh/setup-uv@v5
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
 
       - run: uv sync --all-packages --no-dev
-
       - run: uv pip install pyinstaller
-
       - run: uv run python .github/scripts/freeze_versions.py
 
       - name: Get Build Identifier
@@ -41,6 +37,8 @@ jobs:
             --windowed `
             --optimize 2 `
             --name AstraLauncher-Windows-Portable `
+            --icon public/icon.png `
+            --add-data "public/icon.png;public" `
             --exclude-module PyQt5 `
             --exclude-module PyQt6 `
             --exclude-module PySide6 `
@@ -66,21 +64,16 @@ jobs:
           path: dist/AstraLauncher-Windows-Portable.exe
 
   build_macos:
-    needs: build_windows_portable
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: astral-sh/setup-uv@v5
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
 
       - run: uv sync --all-packages --no-dev
-
       - run: uv pip install pyinstaller
-
       - run: uv run python .github/scripts/freeze_versions.py
 
       - name: Get Build Identifier
@@ -98,6 +91,8 @@ jobs:
             --windowed \
             --optimize 2 \
             --name AstraLauncher-${{ runner.os }} \
+            --icon public/icon.png \
+            --add-data "public/icon.png:public" \
             --exclude-module PyQt5 \
             --exclude-module PyQt6 \
             --exclude-module PySide6 \
@@ -119,7 +114,6 @@ jobs:
       - name: Package macOS
         run: |
           brew install create-dmg
-
           create-dmg \
             --volname "Astra Launcher" \
             --window-pos 200 120 \
@@ -138,21 +132,16 @@ jobs:
           path: "*.dmg"
 
   build_windows_installer:
-    needs: build_macos
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: astral-sh/setup-uv@v5
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
 
       - run: uv sync --all-packages --no-dev
-
       - run: uv pip install pyinstaller
-
       - run: uv run python .github/scripts/freeze_versions.py
 
       - name: Get Build Identifier
@@ -170,6 +159,8 @@ jobs:
             --windowed \
             --optimize 2 \
             --name AstraLauncher-${{ runner.os }} \
+            --icon public/icon.png \
+            --add-data "public/icon.png;public" \
             --exclude-module PyQt5 \
             --exclude-module PyQt6 \
             --exclude-module PySide6 \
@@ -208,7 +199,6 @@ jobs:
           Name: "{autoprograms}\Astra Launcher"; Filename: "{app}\AstraLauncher-Windows.exe"
           Name: "{autodesktop}\Astra Launcher"; Filename: "{app}\AstraLauncher-Windows.exe"
           "@ > setup.iss
-
           iscc setup.iss
 
       - name: Upload Windows Installer
@@ -218,21 +208,16 @@ jobs:
           path: "*Windows-Installer*.exe"
 
   build_linux:
-    needs: build_windows_installer
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: astral-sh/setup-uv@v5
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
 
       - run: uv sync --all-packages --no-dev
-
       - run: uv pip install pyinstaller
-
       - run: uv run python .github/scripts/freeze_versions.py
 
       - name: Get Build Identifier
@@ -250,6 +235,8 @@ jobs:
             --windowed \
             --optimize 2 \
             --name AstraLauncher-${{ runner.os }} \
+            --icon public/icon.png \
+            --add-data "public/icon.png:public" \
             --exclude-module PyQt5 \
             --exclude-module PyQt6 \
             --exclude-module PySide6 \

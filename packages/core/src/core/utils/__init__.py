@@ -1,4 +1,5 @@
 from .accept_eula import accept_eula
+from .browser_manager import open_url
 from .find_java import find_java
 from .logger import setup_logging
 from .open_folder import open_folder
@@ -12,4 +13,5 @@ __all__ = [
     "UserFileManager",
     "setup_logging",
     "find_java",
+    "open_url",
 ]
